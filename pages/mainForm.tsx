@@ -15,6 +15,7 @@ const FormComponent = (props: {
 	setAge: Dispatch<SetStateAction<string>>;
 	setGender: Dispatch<SetStateAction<string>>;
 	setCountry: Dispatch<SetStateAction<string>>;
+	setLoading: Dispatch<SetStateAction<boolean>>;
 }) => {
 	const handleSubmit = (event: any) => {
 		event.preventDefault();
@@ -23,12 +24,15 @@ const FormComponent = (props: {
 
 	const fetchData = async (url: string) => {
 		try {
+			props?.setLoading(true);
 			const response = await fetch(url);
 			const data = await response.json();
 			return data;
 		} catch (error) {
 			console.error("Error fetching data:", error);
 			return null;
+		} finally {
+			props?.setLoading(false);
 		}
 	};
 
@@ -324,13 +328,13 @@ const FormComponent = (props: {
 			`https://api.nationalize.io?name=${name}`
 		);
 		const genderRes = await fetchData(`https://api.genderize.io?name=${name}`);
-		props?.setAge(ageRes?.age ?? "-");
+		props?.setAge(ageRes?.age ?? "Unknown");
 		props?.setCountry(
 			mapCountryCodeToName(
 				findCountryWithHighestProbability(countryRes)?.country_id ?? "-"
 			) ?? "-"
 		);
-		props?.setGender(genderRes?.gender ?? "-");
+		props?.setGender(genderRes?.gender ?? "Unknown");
 	};
 
 	return (
@@ -346,6 +350,9 @@ const FormComponent = (props: {
 					placeholder="Enter your name"
 					onChange={(event) => {
 						setName(event.target.value);
+						props?.setAge("");
+						props?.setCountry("");
+						props?.setGender("");
 					}}
 				/>
 				<button
